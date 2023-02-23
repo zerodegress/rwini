@@ -1,0 +1,1 @@
+export type Rwini = Map<string, Map<string, string>>;

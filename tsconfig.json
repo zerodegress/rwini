@@ -1,0 +1,19 @@
+{
+  "compilerOptions": {
+    "target": "ESNext",
+    "lib": ["ESNext"],
+    "module": "commonjs",
+    "rootDir": "./",
+    "baseUrl": "./",
+    "allowJs": true,
+    "checkJs": true,
+    "declaration": true,
+    "declarationMap": true,
+    "outDir": "./lib/",
+    "declarationDir": "./lib/",
+    "forceConsistentCasingInFileNames": true,
+    "strict": true,
+  },
+  "include": ["src/**/*.ts"],
+  "exclude": ["**/__test__/**/*", "node_modules/**/*"]
+}
