@@ -106,7 +106,7 @@ export const presetTokenizer: Tokenizer = (text: string) => {
           toTokens(
             "whiteSpace",
             "identifier",
-            "semicolon",
+            "keyValueSymbol",
             "whiteSpace",
             "value",
             "comment",

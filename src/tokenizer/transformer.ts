@@ -138,6 +138,14 @@ export const filterWhitespace: TokensTransformer = (tokens) => {
   return tokens.filter(token => !(token.type == "whiteSpace")); 
 };
 
+export const filterNewLine: TokensTransformer = (tokens) => {
+  return tokens.filter(token => !(token.type == "newLine"));
+};
+
+export const filterKeyValueSymbol: TokensTransformer = (tokens) => {
+  return tokens.filter(token => !(token.type == "keyValueSymbol"));
+};
+
 export const filterComments: TokensTransformer = (tokens) => {
   return tokens.filter(token => !(token.type == "comment"));
 };
@@ -147,5 +155,7 @@ export const presetTransformers = [
   concatMultilineValue,
   concatSectionComment,
   filterWhitespace,
+  filterNewLine,
   filterComments,
+  filterKeyValueSymbol,
 ];
