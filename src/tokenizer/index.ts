@@ -86,6 +86,16 @@ export const presetTokenizer: Tokenizer = (text: string) => {
     const toTokens = (...types: TokenType[]) => types.map(type => toToken(type));
     util.matches(line)([
       [
+        EMPTY_REG,
+        (res) => util.doForEach(
+          res.slice(1),
+          toTokens(
+            "whiteSpace",
+            "comment",
+          ),
+        )
+      ],
+      [
         SECTION_REG,
         (res) => util.doForEach(
           res.slice(1),
@@ -109,16 +119,6 @@ export const presetTokenizer: Tokenizer = (text: string) => {
             "keyValueSymbol",
             "whiteSpace",
             "value",
-            "comment",
-          ),
-        )
-      ],
-      [
-        EMPTY_REG,
-        (res) => util.doForEach(
-          res.slice(1),
-          toTokens(
-            "whiteSpace",
             "comment",
           ),
         )

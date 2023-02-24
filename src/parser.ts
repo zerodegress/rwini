@@ -10,9 +10,9 @@ export type NodeType =
   | "key"
   | "value"
   | "term"
-  | "identifier"
   | "rwini"
   | "empty"
+  | "identifier"
 
 export interface Node {
   type: NodeType;
@@ -40,7 +40,6 @@ export const parsersPipe = (tokens: Token[], ...parsers: Parser[]): [Node[], Tok
   const nodes: Node[] = [];
   let nTokens = tokens;
   for(const parser of parsers) {
-    const tokenCache = _.last(tokens);
     const [node, iTokens] = parser(nTokens);
     nodes.push(node);
     nTokens = iTokens;
@@ -104,6 +103,7 @@ export const opt = (parser: Parser, type?: TokenType): Parser => (tokens) => {
 };
 
 export const identifier = varTerm("identifier", "identifier");
+export const key = varTerm("identifier", "key");
 export const valueParser = varTerm("value", "value");
 
 export const sectionName: Parser = (tokens) => {
@@ -138,7 +138,7 @@ export const code: Parser = (tokens) => {
       case "identifier":
         return parsersPipe(
           tokens,
-          identifier,
+          key,
           valueParser,
         );
       default:
@@ -178,7 +178,7 @@ export const section: Parser = (tokens) => {
     return parsersPipe(
       tokens,
       sectionName,
-      opt(codeList, "bracketLeft"),
+      opt(codeList, "identifier"),
     );
   })();
   return [
@@ -216,4 +216,25 @@ export const filterEmpty: NodesTransformer = (nodes) => {
       ...node,
       children: filterEmpty(node.children),
     }));
+};
+
+export const flattenNode = (type: NodeType, nodes: Node[]): Node[] => {
+  return nodes
+    .map(node => {
+      const nChildren: Node[] = [];
+      for(const child of flattenNode(type, node.children)) {
+        if(child.type == type) {
+          child.children.forEach(x => nChildren.push(x));
+        } else {
+          nChildren.push({
+            ...child,
+            children: flattenNode(type, child.children)
+          });
+        }
+      }
+      return {
+        ...node,
+        children: nChildren,
+      };
+    });
 };
