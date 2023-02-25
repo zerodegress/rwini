@@ -211,7 +211,7 @@ export const rwini: Parser = (tokens) => {
 
 export const filterEmpty: NodesTransformer = (nodes) => {
   return nodes
-    .filter(node => node.type == "empty")
+    .filter(node => node.type != "empty")
     .map(node => ({
       ...node,
       children: filterEmpty(node.children),
