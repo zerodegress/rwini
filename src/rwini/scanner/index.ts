@@ -94,7 +94,7 @@ export const scanNode = (node: Node) => {
           if(!key || !value) {
             break;
           }
-          const res = /^(@define\s+(?<define>.+))|(@global\s+(?<global>.+))|(@memory\s+(?<memory>.+))$/.exec(key.value);
+          const res = /^(@define\s+(?<define>[^\s]+))|(@global\s+(?<global>[^\s]+))|(@memory\s+(?<memory>[^\s]+))$/.exec(key.value);
           if(res) {
             if(res.groups?.define) {
               table.defines.push({
@@ -127,7 +127,7 @@ export const scanNode = (node: Node) => {
               .split(",")
               .filter(x => x && x != ",");
             for(const memory of memories) {
-              const res = /^\s*(?<type>)\s+(?<name>)\s*$/.exec(memory);
+              const res = /^\s*(?<type>[^\s]+)\s+(?<name>[^\s]+)\s*$/.exec(memory);
               if(res && res.groups && res.groups.type && isRawMemoryType(res.groups.type) && res.groups.name) {
                 table.memories.push({
                   scopeId: states.scopes[0].id,

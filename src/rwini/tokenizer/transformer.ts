@@ -53,6 +53,7 @@ export const concatMultilineValue: TokensTransformer = (tokens) => {
       switch(token.type) {
         case "tripleQuotes":
           states.almostEnd = !states.almostEnd;
+          states.may = false;
           states.tokensCache.push(token);
           break;
         case "newLine":
@@ -64,7 +65,6 @@ export const concatMultilineValue: TokensTransformer = (tokens) => {
               states.tokensCache = [];
               break;
             }
-            states.tokensCache.push(token);
             nTokens.push({
               type: "value",
               value: states.tokensCache.map(x => x.value).join(""),
@@ -73,6 +73,7 @@ export const concatMultilineValue: TokensTransformer = (tokens) => {
                 end: (_.last(states.tokensCache) as Token).range.end,
               }
             });
+            nTokens.push(token);
             states.tokensCache = [];
             states.almostEnd = false;
           } else {

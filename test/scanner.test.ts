@@ -11,7 +11,7 @@ import { ScanError, scanNode } from "../src/rwini/scanner";
 describe("scanNode()", () => {
   it("scan real tree", () => {
     const tokens = pipe(
-      presetTokenizer(fs.readFileSync(path.join(__dirname, "./__samples__/test1.ini")).toString()), 
+      presetTokenizer(fs.readFileSync(path.join(__dirname, "./samples/test1.ini")).toString()), 
       ...presetTransformers,
     );
     const ini = rwini(tokens);
