@@ -3,8 +3,6 @@
     "target": "ESNext",
     "lib": ["ESNext"],
     "module": "commonjs",
-    "rootDir": "./",
-    "baseUrl": "./",
     "allowJs": true,
     "checkJs": true,
     "declaration": true,
@@ -14,6 +12,6 @@
     "forceConsistentCasingInFileNames": true,
     "strict": true,
   },
-  "include": ["src/**/*.ts"],
+  "include": ["./src/**/*"],
   "exclude": ["**/__test__/**/*", "node_modules/**/*"]
 }

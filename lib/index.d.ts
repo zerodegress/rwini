@@ -1,18 +1,3 @@
-export type TokenType = "string";
-export interface Position {
-    line: number;
-    column: number;
-}
-export declare const newPostion: (line: number, column: number) => {
-    line: number;
-    column: number;
-};
-export interface Token {
-    type: TokenType;
-    content: string;
-    location: {
-        start: Position;
-        end: Position;
-    };
-}
+import { Raw } from "./rwini";
+export declare const parseIni: <T extends string>(ini: T) => Raw;
 //# sourceMappingURL=index.d.ts.map

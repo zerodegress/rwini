@@ -4,7 +4,8 @@
   "description": "a Rusted Warfare Mod ini parser",
   "main": "index.js",
   "scripts": {
-    "build": "tsc --build --clean",
+    "build": "tsc --build",
+    "clean": "tsc --build --clean",
     "watch": "tsc --watch",
     "test": "jest"
   },

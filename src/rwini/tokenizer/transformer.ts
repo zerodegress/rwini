@@ -1,6 +1,6 @@
 import { Token, TokenizeError, TokensTransformer } from ".";
 import * as _ from "lodash";
-import { Position, Range } from "src/util";
+import { Position, Range } from "../../util";
 
 export const splitTripleQuotes:TokensTransformer = (tokens) => {
   const nTokens: Token[] = [];
