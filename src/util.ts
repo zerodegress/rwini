@@ -5,6 +5,11 @@ export interface Position {
   column: number;
 }
 
+export interface Range {
+  start: Position,
+  end: Position,
+}
+
 export const enumerate = <T>(arr: T[]) => {
   return Array.from(arr.entries());
 };

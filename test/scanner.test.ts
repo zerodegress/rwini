@@ -6,9 +6,10 @@ import { concatMultilineValue, presetTransformers, splitTripleQuotes } from "../
 import { rwini, flattenNode, filterEmpty } from "../src/rwini/parser";
 import { parseTreetoRaw } from "../src/rwini";
 import { pipe } from "../src/util";
+import { ScanError, scanNode } from "../src/rwini/scanner";
 
-describe("parseTree()", () => {
-  it("parses real tree", () => {
+describe("scanNode()", () => {
+  it("scan real tree", () => {
     const tokens = pipe(
       presetTokenizer(fs.readFileSync(path.join(__dirname, "./__samples__/test1.ini")).toString()), 
       ...presetTransformers,
@@ -18,5 +19,6 @@ describe("parseTree()", () => {
     expect(ini[0].children.find(x => x.type == "empty")).toBe(undefined);
     const rIni = filterEmpty(flattenNode("codeList", flattenNode("rwini", [ini[0]])));
     expect(rIni.length > 0).toBe(true);
+    console.log(scanNode(rIni[0]));
   });
 });

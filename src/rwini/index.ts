@@ -1,9 +1,9 @@
 import { Node } from "./parser";
 
-export type Rwini = Map<string, Map<string, string>>;
+export type Raw = Map<string, Map<string, string>>;
 
-export const parseTree = (node: Node) => {
-  const ini: Rwini = new Map();
+export const parseTreetoRaw = (node: Node) => {
+  const ini: Raw = new Map();
   if(node.type == "rwini") {
     for(const sec of node.children) {
       if(sec.type != "section") {
@@ -20,4 +20,15 @@ export const parseTree = (node: Node) => {
     }
   }
   return ini;
+};
+
+export const serializeRawToString = (raw: Raw) => {
+  let text = "";
+  for(const [secname, sec] of raw) {
+    text += `[${secname}]`;
+    for(const [key, value] of sec) {
+      text += `${key}:${value}\n`;
+    }
+  }
+  return text;
 };

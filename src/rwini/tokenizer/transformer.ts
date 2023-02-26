@@ -1,5 +1,6 @@
 import { Token, TokenizeError, TokensTransformer } from ".";
 import * as _ from "lodash";
+import { Position, Range } from "src/util";
 
 export const splitTripleQuotes:TokensTransformer = (tokens) => {
   const nTokens: Token[] = [];
@@ -7,50 +8,31 @@ export const splitTripleQuotes:TokensTransformer = (tokens) => {
     if(token.type != "value" && token.type != "text") {
       nTokens.push(token);
     } else {
-      const pos = token.value.search(/"""/);
-      if(pos != -1) {
-        const [before, after] = token.value.split(/"""/);
-        const newLines = before.split("\n").length - 1;
-        if(before.length > 0) {
-          nTokens.push({
-            type: token.type,
-            value: before,
-            range: {
-              start: token.range.start,
-              end: {
-                line: token.range.start.line + newLines,
-                column: token.range.start.column + before.length - 1,
-              },
-            }
-          });
-        }
-        nTokens.push({
-          type: "tripleQuotes",
-          value: "\"\"\"",
-          range: {
-            start: {
-              line: token.range.start.line + newLines,
-              column: token.range.start.column + before.length,
-            },
-            end: {
-              line: token.range.start.line + newLines,
-              column: token.range.start.column + before.length + 2,
-            }
+      const res = Array.from(token.value.match(/(""")|(''')/g) || []);
+      if(res.length > 0) {
+        const splits = token.value.split(/(""")|(''')/g).filter(x => x);
+        const suffixTokens: Token[] = [];
+        const pos: Position = token.range.start;
+        for(const split of splits) {
+          const start = {...pos};
+          const end = {
+            line: pos.line, 
+            column: pos.column + split.length - 1,
+          };
+          if(split.length > 0) {
+            suffixTokens.push({
+              type: split.match(/(""")|(''')/) ? "tripleQuotes" : "value",
+              value: split,
+              range: {
+                start,
+                end,
+              }
+            });
           }
-        });
-        if(after.length > 0) {
-          nTokens.push({
-            type: token.type,
-            value: after,
-            range: {
-              start: {
-                line: token.range.start.line + newLines,
-                column: token.range.start.column + before.length + 3,
-              },
-              end: token.range.end,
-            }
-          });
+          pos.line = end.line;
+          pos.column = end.column + 1;
         }
+        nTokens.push(...suffixTokens);
       } else {
         nTokens.push(token);
       }
@@ -62,24 +44,51 @@ export const splitTripleQuotes:TokensTransformer = (tokens) => {
 export const concatMultilineValue: TokensTransformer = (tokens) => {
   const nTokens: Token[] = [];
   const states = {
-    tokensCache: [] as Token[]
+    tokensCache: [] as Token[],
+    almostEnd: false,
+    may: false,
   };
   for(const token of tokens) {
     if(states.tokensCache.length > 0) {
-      states.tokensCache.push(token);
-      if(token.type == "tripleQuotes") {
-        nTokens.push({
-          type: "value",
-          value: states.tokensCache.map(x => x.value).join(""),
-          range: {
-            start: states.tokensCache[0].range.start,
-            end: (_.last(states.tokensCache) as Token).range.end,
-          },
-        });
-        states.tokensCache = [];
+      switch(token.type) {
+        case "tripleQuotes":
+          states.almostEnd = !states.almostEnd;
+          states.tokensCache.push(token);
+          break;
+        case "newLine":
+          if(states.almostEnd) {
+            if(states.may) {
+              nTokens.push(...states.tokensCache);
+              nTokens.push(token);
+              states.may = false;
+              states.tokensCache = [];
+              break;
+            }
+            states.tokensCache.push(token);
+            nTokens.push({
+              type: "value",
+              value: states.tokensCache.map(x => x.value).join(""),
+              range: {
+                start: states.tokensCache[0].range.start,
+                end: (_.last(states.tokensCache) as Token).range.end,
+              }
+            });
+            states.tokensCache = [];
+            states.almostEnd = false;
+          } else {
+            states.tokensCache.push(token);
+          }
+          break;
+        default:
+          states.tokensCache.push(token);
       }
     } else if(token.type == "tripleQuotes") {
       states.tokensCache.push(token);
+      states.almostEnd = false;
+    } else if(token.type == "value") {
+      states.tokensCache.push(token);
+      states.may = true;
+      states.almostEnd = true;
     } else {
       nTokens.push(token);
     }

@@ -1,5 +1,6 @@
 import _ = require("lodash");
-import { Token, TokenType } from "./tokenizer";
+import { Token, TokenType } from "../tokenizer";
+import { Range } from "../../util";
 
 export type NodeType =
   | "rwini"
@@ -18,6 +19,7 @@ export interface Node {
   type: NodeType;
   children: Node[];
   value: string;
+  range: Range;
 }
 
 export interface Parser {
@@ -56,6 +58,7 @@ export const term = (type: TokenType, value: string): Parser => (tokens) => {
           type: "term",
           value: token.value,
           children: [],
+          range: token.range,
         },
         tokens,
       ];
@@ -76,6 +79,7 @@ export const varTerm = (tokenType: TokenType, nodeType: NodeType): Parser => (to
           type: nodeType,
           value: token.value,
           children: [],
+          range: token.range,
         },
         tokens,
       ];
@@ -96,6 +100,7 @@ export const opt = (parser: Parser, type?: TokenType): Parser => (tokens) => {
         type: "empty",
         value: "",
         children: [],
+        range: {start:{line:-1,column:-1},end:{line:-1,column:-1}}
       }, 
       tokens
     ];
@@ -126,6 +131,10 @@ export const sectionName: Parser = (tokens) => {
       type: "sectionName",
       value: nodes[1].value,
       children: nodes,
+      range: {
+        start: _.head(nodes)?.range.start, 
+        end: _.last(nodes)?.range.end,
+      } as Range,
     },
     nTokens,
   ];
@@ -150,6 +159,10 @@ export const code: Parser = (tokens) => {
       type: "code",
       value: nodes[0].value,
       children: nodes,
+      range: {
+        start: _.head(nodes)?.range.start, 
+        end: _.last(nodes)?.range.end,
+      } as Range,
     },
     nTokens,
   ];
@@ -168,6 +181,10 @@ export const codeList: Parser = (tokens) => {
       type: "codeList",
       value: "",
       children: nodes,
+      range: {
+        start: _.head(nodes)?.range.start, 
+        end: _.last(nodes)?.range.end,
+      } as Range,
     },
     nTokens,
   ];
@@ -186,6 +203,10 @@ export const section: Parser = (tokens) => {
       type: "section",
       value: nodes[0].value,
       children: nodes,
+      range: {
+        start: _.head(nodes)?.range.start, 
+        end: _.last(nodes)?.range.end,
+      } as Range,
     },
     nTokens,
   ];
@@ -204,6 +225,10 @@ export const rwini: Parser = (tokens) => {
       type: "rwini",
       value: "",
       children: nodes,
+      range: {
+        start: _.head(nodes)?.range.start, 
+        end: _.last(nodes)?.range.end,
+      } as Range,
     },
     nTokens,
   ];
@@ -237,4 +262,15 @@ export const flattenNode = (type: NodeType, nodes: Node[]): Node[] => {
         children: nChildren,
       };
     });
+};
+
+export const visitTree = (
+  tree: Node, 
+  callback: (current: Node, chain: Node[]) => void,
+  chain?: Node[],
+) => {
+  callback(tree, [...(chain || [])]);
+  for(const node of tree.children) {
+    visitTree(node, callback, [...(chain || []), tree]);
+  }
 };

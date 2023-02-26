@@ -1,9 +1,9 @@
-import { rwini, filterEmpty, flattenNode } from "./parser";
-import { parseTree, Rwini } from "./rwini";
-import { presetTokenizer } from "./tokenizer";
-import { presetTransformers } from "./tokenizer/transformer";
+import { rwini, filterEmpty, flattenNode } from "./rwini/parser";
+import { parseTreetoRaw, Raw } from "./rwini";
+import { presetTokenizer } from "./rwini/tokenizer";
+import { presetTransformers } from "./rwini/tokenizer/transformer";
 import { pipe } from "./util";
-export const parseIni = <T extends string>(ini: T): Rwini => {
+export const parseIni = <T extends string>(ini: T): Raw => {
   const tokens = pipe(
     presetTokenizer(ini), 
     ...presetTransformers
@@ -17,5 +17,5 @@ export const parseIni = <T extends string>(ini: T): Rwini => {
       ),
     ),
   );
-  return parseTree(rIni[0]);
+  return parseTreetoRaw(rIni[0]);
 };

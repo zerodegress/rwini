@@ -1,5 +1,5 @@
-import type { Position } from "../util";
-import * as util from "../util";
+import type { Position } from "../../util";
+import * as util from "../../util";
 
 export const SECTION_REG = /^(\s*)(\[)([^[\]]+?)(\])(\s*)(#.*)?$/;
 export const CODE_REG = /^(\s*)([^:]+?)(:)(\s*)([^#]+)(#.*)?$/;
