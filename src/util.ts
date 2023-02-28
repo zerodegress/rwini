@@ -46,3 +46,70 @@ export const pipe = <T>(start: T, ...transformers: ((value: T) => T)[]) => {
   }
   return state;
 };
+
+export const sameLineRange = (line: number, start: number, length: number): {
+  start: Position;
+  end: Position;
+} => {
+  return {
+    start: {
+      line,
+      column: start,
+    },
+    end: {
+      line,
+      column: start + length - 1,
+    }
+  };
+};
+
+export interface Result<T, E = Error> {
+  isOk: () => boolean;
+  isErr: () => boolean;
+  ifOk: (callback: (value: T) => void) => void;
+  ifErr: (callback: (error: E) => void) => void;
+  unwrap: () => T;
+}
+
+export const ok = <T, E = Error>(value: T): Result<T, E> => {
+  return {
+    isOk: () => true,
+    isErr: () => false,
+    ifOk: (callback) => {
+      callback(value);
+    },
+    ifErr: () => null,
+    unwrap: () => value,
+  };
+};
+
+export const err = <T, E = Error>(error: E): Result<T, E> => {
+  return {
+    isOk: () => false,
+    isErr: () => true,
+    ifOk: () => null,
+    ifErr: (callback) => {
+      callback(error);
+    },
+    unwrap: () => {
+      throw error;
+    },
+  };
+};
+
+export const asErr = <T1, T2, E = Error>(err: Result<T1, E>): Result<T2, E> => {
+  return {
+    isOk: () => false,
+    isErr: () => true,
+    ifOk: () => null,
+    ifErr: (callback) => {
+      err.ifErr(error => callback(error));
+    },
+    unwrap: () => {
+      throw err.unwrap();
+    }
+  };
+};
+
+export type If<Type, Extends, Then, Or> = Type extends Extends ? Then : Or;
+export type Only<Type, Extends, Then> = If<Type, Extends, Then, never>;

@@ -1,6 +1,6 @@
 import { describe, it, expect } from "@jest/globals";
-import { presetTokenizer } from "../src/tokenizer";
-import { presetTransformers } from "../src/tokenizer/transformer";
+import { presetTokenizer } from "../src/rwini/tokenizer";
+import { presetTransformers } from "../src/rwini/tokenizer/transformer";
 import { pipe } from "../src/util";
 import * as fs from "fs-extra";
 import * as path from "path";
@@ -38,7 +38,7 @@ describe("presetTransformers", () => {
     console.log(tokens);
   });
   it("targets correctly", () => {
-    const ini = fs.readFileSync(path.join(__dirname, "./__samples__/test1.ini")).toString();
+    const ini = fs.readFileSync(path.join(__dirname, "./samples/test1.ini")).toString();
     const lines = ini.split("\n");
     const tokens = pipe(
       presetTokenizer(ini),

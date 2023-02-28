@@ -11,6 +11,7 @@ specifiers:
   ebnf: ^1.9.0
   eslint: ^8.34.0
   fs-extra: ^11.1.0
+  immutable: ^4.2.4
   jest: ^29.4.3
   lodash: ^4.17.21
   ts-jest: ^29.0.5
@@ -19,6 +20,7 @@ specifiers:
 
 dependencies:
   '@xstate/fsm': 2.0.0
+  immutable: 4.2.4
   lodash: 4.17.21
 
 devDependencies:
@@ -1765,6 +1767,10 @@ packages:
     resolution: {integrity: sha512-MAb38BcSbH0eHNBxn7ql2NH/kX33OkB3lZ1BNdh7ENeRChHTYsTvWrMubiIAMNS2llXEEgZ1MUOBtXChP3kaFQ==}
     engines: {node: '>= 4'}
     dev: true
+
+  /immutable/4.2.4:
+    resolution: {integrity: sha512-WDxL3Hheb1JkRN3sQkyujNlL/xRjAo3rJtaU5xeufUauG66JdMr32bLj4gF+vWl84DIA3Zxw7tiAjneYzRRw+w==}
+    dev: false
 
   /import-fresh/3.3.0:
     resolution: {integrity: sha512-veYYhQa+D1QBKznvhUHxb8faxlrwUnxseDAbAp457E0wLNio2bOSKnjYDhMj+YiAq61xrMGhQk9iXVk5FzgQMw==}

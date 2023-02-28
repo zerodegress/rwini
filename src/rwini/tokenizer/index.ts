@@ -1,4 +1,4 @@
-import type { Position } from "../../util";
+import { Range, sameLineRange } from "../../util";
 import * as util from "../../util";
 
 export const SECTION_REG = /^(\s*)(\[)([^[\]]+?)(\])(\s*)(#.*)?$/;
@@ -25,27 +25,10 @@ export type TokenType =
 export interface Token {
   type: TokenType;
   value: string;
-  range: {
-    start: Position;
-    end: Position;
-  }
+  range: Range;
 }
 
-const sameLineRange = (line: number, start: number, length: number): {
-  start: Position;
-  end: Position;
-} => {
-  return {
-    start: {
-      line,
-      column: start,
-    },
-    end: {
-      line,
-      column: start + length - 1,
-    }
-  };
-};
+
 
 export interface Tokenizer {
   (text: string): Token[];

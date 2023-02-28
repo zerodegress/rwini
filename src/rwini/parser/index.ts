@@ -1,4 +1,4 @@
-import _ = require("lodash");
+import * as _ from "lodash";
 import { Token, TokenType } from "../tokenizer";
 import { Range } from "../../util";
 
