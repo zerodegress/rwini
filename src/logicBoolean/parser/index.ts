@@ -31,6 +31,12 @@ export type NodeType =
   | "member"
   | "expr"
   | "assign"
+  | "addAssign"
+  | "subAssign"
+  | "multiplyAssign"
+  | "divideAssign"
+  | "modAssign"
+  | "nullCallParas"
 
 export interface Node {
   type: NodeType;
@@ -183,22 +189,6 @@ export class Parser {
       case "empty":
         this.op();
         break;
-      case "parrenRight":
-        if(!this.isCall) {
-          this.op();
-        }
-    }
-  }
-
-  assign() {
-    switch(this.getCurrent().type) {
-      case "identifier":
-        this.match("identifier", "identifier");
-        switch(this.getCurrent().type) {
-          case "assign":
-            this.match("assign", "assign", "sep");
-            this.factor();
-        }
     }
   }
 
@@ -218,7 +208,11 @@ export class Parser {
             type: "call",
             children: [
               first[1],
-              node.children[0]
+              node.children.at(0) || {
+                type: "nullCallParas",
+                children: [],
+                range: [0,0]
+              }
             ],
             range: first[1].range
           }]);
@@ -239,7 +233,11 @@ export class Parser {
             type: "index",
             children: [
               first[1],
-              node.children[0]
+              node.children.at(0) || {
+                type: "nullCallParas",
+                children: [],
+                range: [0,0]
+              }
             ],
             range: first[1].range
           }]);
@@ -393,6 +391,38 @@ export class Parser {
     this.orRest();
   }
 
+  assignRest() {
+    switch(this.getCurrent().type) {
+      case "assign":
+        this.match("assign", "assign", "sep");
+        break;
+      case "addAssign":
+        this.match("addAssign", "addAssign", "sep");
+        break;
+      case "subAssign":
+        this.match("subAssign", "subAssign", "sep");
+        break;
+      case "multiplyAssign":
+        this.match("multiplyAssign", "multiplyAssign", "sep");
+        break;
+      case "divideAssign":
+        this.match("divideAssign", "divideAssign", "sep");
+        break;
+      case "modAssign":
+        this.match("modAssign", "modAssign", "sep");
+        break;
+      default:
+        return;
+    }
+    this.or();
+    this.assignRest();
+  }
+
+  assign() {
+    this.or();
+    this.assignRest();
+  }
+
   listRest() {
     switch(this.getCurrent().type) {
       case "comma":
@@ -401,12 +431,12 @@ export class Parser {
       default:
         return;
     }
-    this.or();
+    this.assign();
     this.listRest();
   }
 
   list() {
-    this.or();
+    this.assign();
     this.listRest();
   }
 

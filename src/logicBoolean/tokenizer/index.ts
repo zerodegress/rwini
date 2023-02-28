@@ -28,6 +28,11 @@ export type TokenType =
   | "null"
   | "empty"
   | "assign"
+  | "addAssign"
+  | "subAssign"
+  | "multiplyAssign"
+  | "divideAssign"
+  | "modAssign"
 
 export interface Token {
   type: TokenType;
@@ -89,6 +94,11 @@ export const dot = term(",", "dot");
 export const identifier = regex(/^(([^\s=+\-*/()[\]\\/:;'",.!~@#$%^&*]+)|([^\s=+\-*/()[\]\\/:;'",.!~@#$%^&*0-9]))/, "identifier");
 export const whiteSpace = regex(/^\s*/, "whiteSpace");
 export const assign = term("=", "assign");
+export const addAssign = term("+=", "addAssign");
+export const subAssign = term("-=", "subAssign");
+export const multiplyAssign = term("*=", "multiplyAssign");
+export const divideAssign = term("/=", "divideAssign");
+export const modAssign = term("%=", "modAssign");
 
 export const tokenizers: Tokenizer[] = [
   number,
@@ -111,6 +121,11 @@ export const tokenizers: Tokenizer[] = [
   lessThan,
   lessThanEquals,
   assign,
+  addAssign,
+  subAssign,
+  multiplyAssign,
+  divideAssign,
+  modAssign,
   plus,
   minus,
   multiply,

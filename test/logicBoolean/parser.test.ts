@@ -4,8 +4,8 @@ import { Parser } from "../../src/logicBoolean/parser";
 
 describe("addExpr()", () => {
   it("works", () => {
-    const tokens = tokenize("a + a * (a * a / 2) + 5 + abc(a) + index[c]").filter(x => x.type != "whiteSpace");
+    const tokens = tokenize("a = a + a * (a * a / 2) + 5 + abc(b,a=a) + c() + index[c]").filter(x => x.type != "whiteSpace");
     const parser = new Parser(tokens);
-    console.log(JSON.stringify(parser.parse(), undefined, 2));
+    parser.parse();
   });
 });
