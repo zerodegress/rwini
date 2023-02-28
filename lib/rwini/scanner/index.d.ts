@@ -1,32 +1,31 @@
 import { Node } from "../parser";
-import { RawMemoryType } from "../../value";
-export interface SectionSymbol {
+import { RawMemoryType } from "../value";
+export interface Symbol {
     id: number;
-    rawName: string;
+    name: string;
+}
+export interface ScopedSymbol extends Symbol {
+    scopeId: number;
+}
+export interface SectionSymbol extends Symbol {
     mainName: string;
     subName: string;
 }
-export interface CodeSymbol {
-    scopeId: number;
-    id: number;
-    key: string;
-}
-export interface DefineSymbol {
-    scopeId: number;
-    id: number;
-    name: string;
+export type CodeSymbol = ScopedSymbol;
+export interface DefineSymbol extends ScopedSymbol {
     value: string;
 }
-export interface MemorySymbol {
-    scopeId: number;
-    id: number;
-    name: string;
+export interface MemorySymbol extends ScopedSymbol {
     type: RawMemoryType;
 }
-export interface ScopeSymbol {
+export interface ScopeSymbol extends Symbol {
     type: "mod" | "template" | "file" | "section" | "value";
-    id: number;
-    name: string;
+}
+export type UseType = "define" | "memory";
+export interface UseSymbol extends ScopedSymbol {
+    type: UseType;
+    useName: string;
+    useFrom: Node;
 }
 export interface SymbolTable {
     sections: SectionSymbol[];
@@ -34,6 +33,7 @@ export interface SymbolTable {
     defines: DefineSymbol[];
     memories: MemorySymbol[];
     scopes: ScopeSymbol[];
+    uses: UseSymbol[];
 }
 export declare const scanNode: (node: Node) => SymbolTable;
 export declare class ScanError extends Error {

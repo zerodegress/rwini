@@ -1,4 +1,4 @@
-import type { Position } from "../../util";
+import { Range } from "../../util";
 export declare const SECTION_REG: RegExp;
 export declare const CODE_REG: RegExp;
 export declare const EMPTY_REG: RegExp;
@@ -7,10 +7,7 @@ export type TokenType = "comment" | "bracketLeft" | "bracketRight" | "identifier
 export interface Token {
     type: TokenType;
     value: string;
-    range: {
-        start: Position;
-        end: Position;
-    };
+    range: Range;
 }
 export interface Tokenizer {
     (text: string): Token[];
