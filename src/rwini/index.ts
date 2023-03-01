@@ -1,6 +1,8 @@
 import { Node } from "./parser";
+import { Value, ValueType } from "./value";
 
 export type Raw = Map<string, Map<string, string>>;
+export type Rwini<Type extends ValueType> = Map<string, Map<string, Value<Type>>>;
 
 export const parseTreetoRaw = (node: Node) => {
   const ini: Raw = new Map();

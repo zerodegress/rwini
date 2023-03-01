@@ -63,10 +63,10 @@ export class Parser {
   ptr: number;
   tree: Node;
   stack: [OpType, Node][];
+  pairing: Node[];
   input: Token[];
   nowNode: Node;
   recall: boolean;
-  isCall: boolean;
 
   constructor(input: Token[], ptr = 0, recall = false) {
     this.input = input;
@@ -79,7 +79,7 @@ export class Parser {
     this.nowNode = this.tree;
     this.stack = [];
     this.recall = recall;
-    this.isCall = false;
+    this.pairing = [];
   }
 
   getCurrent(): Token {
@@ -107,8 +107,7 @@ export class Parser {
             throw new ParseError("unexpected empty", this.input[0]);
           }
           first[1].children.push(second[1]);
-          this.nowNode.children.push(first[1]);
-          this.nowNode = first[1];
+          this.pairing.push(first[1]);
         }
         break;
       case "pre":
@@ -117,8 +116,30 @@ export class Parser {
           if(!first) {
             throw new ParseError("unexpected empty", this.input[0]);
           }
-          this.nowNode.children.push(first[1]);
-          this.nowNode = first[1];
+          this.pairing.push(first[1]);
+        }
+        break;
+    }
+  }
+
+  notop() {
+    const top = this.stack.at(-1);
+    if(!top) {
+      throw new ParseError(`unexpected empty. ptr:${this.ptr} recall:${this.recall}`, this.input[0]);
+    }
+    switch(top[0]) {
+      case "notop":
+        {
+          const pairing = this.pairing.pop();
+          console.log(pairing);
+          if(pairing) {
+            const first = this.stack.pop();
+            if(!first) {
+              throw new ParseError("unexpected empty", this.input[0]);
+            }
+            pairing.children.push(first[1]);
+            this.stack.push(["notop", pairing]);
+          }
         }
         break;
     }
@@ -170,7 +191,8 @@ export class Parser {
           const parser = new Parser(this.input, this.ptr, true);
           const [ptr, node] = parser.parse();
           this.ptr = ptr;
-          this.stack.push(["notop", node.children[0]]);
+          this.stack.push(["notop", node]);
+          this.notop();
         }
         this.match("parrenRight", "empty");
         break;
@@ -208,15 +230,12 @@ export class Parser {
             type: "call",
             children: [
               first[1],
-              node.children.at(0) || {
-                type: "nullCallParas",
-                children: [],
-                range: [0,0]
-              }
+              node
             ],
             range: first[1].range
           }]);
         }
+        this.notop();
         this.match("parrenRight", "empty");
         break;
       case "bracketLeft":
@@ -233,20 +252,18 @@ export class Parser {
             type: "index",
             children: [
               first[1],
-              node.children.at(0) || {
-                type: "nullCallParas",
-                children: [],
-                range: [0,0]
-              }
+              node
             ],
             range: first[1].range
           }]);
         }
+        this.notop();
         this.match("bracketRight", "empty");
         break;
       case "dot":
         this.match("dot", "member", "sep");
         this.factor();
+        this.notop();
         break;
       default:
         return;
@@ -263,9 +280,12 @@ export class Parser {
     switch(this.getCurrent().type) {
       case "not":
         this.match("not", "not", "pre");
+        this.call();
+        this.notop();
         break;
+      default:
+        this.call();
     }
-    this.call();
   }
 
   mulRest() {
@@ -283,6 +303,7 @@ export class Parser {
         return;
     }
     this.not();
+    this.notop();
     this.mulRest();
   }
 
@@ -303,6 +324,7 @@ export class Parser {
         return;
     }
     this.mul();
+    this.notop();
     this.addRest();
   }
 
@@ -329,6 +351,7 @@ export class Parser {
         return;
     }
     this.add();
+    this.notop();
     this.noeqRest();
   }
 
@@ -349,6 +372,7 @@ export class Parser {
         return;
     }
     this.noeq();
+    this.notop();
     this.noeqRest();
   }
 
@@ -366,6 +390,7 @@ export class Parser {
         return;
     }
     this.eq();
+    this.notop();
     this.andRest();
   }
 
@@ -383,6 +408,7 @@ export class Parser {
         return;
     }
     this.and();
+    this.notop();
     this.orRest();
   }
 
@@ -415,6 +441,7 @@ export class Parser {
         return;
     }
     this.or();
+    this.notop();
     this.assignRest();
   }
 
@@ -432,6 +459,7 @@ export class Parser {
         return;
     }
     this.assign();
+    this.notop();
     this.listRest();
   }
 
@@ -443,9 +471,6 @@ export class Parser {
   parse(): [number, Node] {
     this.list();
     const latest = this.stack.pop();
-    if(this.recall) {
-      console;
-    }
     if(latest) {
       this.nowNode.children.push(latest[1]);
     }

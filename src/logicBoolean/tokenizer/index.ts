@@ -67,7 +67,7 @@ export const regex = (reg: RegExp, type: TokenType): Tokenizer  => (input: strin
   }
 };
 export const number = regex(/^(([1-9][0-9]+)|([0-9]))(\.[0-9]+f?)?/, "number");
-export const stringLiteral = regex(/^("[^"]*")|('[^']*')/, "stringLiteral");
+export const stringLiteral = regex(/^(("((\\")|([^"]))*")|('((\\')|([^']))*'))/, "stringLiteral");
 export const parrenLeft = term("(", "parrenLeft");
 export const parrenRight = term(")", "parrenRight");
 export const bracketLeft = term("[", "bracketLeft");
@@ -90,7 +90,7 @@ export const minus = term("-", "minus");
 export const multiply = term("*", "multiply");
 export const divide = term("/", "divide");
 export const mod = term("%", "mod");
-export const dot = term(",", "dot");
+export const dot = term(".", "dot");
 export const identifier = regex(/^(([^\s=+\-*/()[\]\\/:;'",.!~@#$%^&*]+)|([^\s=+\-*/()[\]\\/:;'",.!~@#$%^&*0-9]))/, "identifier");
 export const whiteSpace = regex(/^\s*/, "whiteSpace");
 export const assign = term("=", "assign");
