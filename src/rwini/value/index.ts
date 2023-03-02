@@ -60,7 +60,7 @@ export type TypeMap<Type extends ValueType> =
     Type extends [infer I extends BasicValueType] ? BasicTypeMap<I> : never
     : BasicTypeMap<Type>
 
-export interface Value<Type extends ValueType> {
-  type: Type;
-  value: TypeMap<Type>;
+export interface Value {
+  type: ValueType;
+  value: TypeMap<ValueType>;
 }

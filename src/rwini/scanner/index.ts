@@ -1,163 +1,208 @@
-import * as _ from "lodash";
-import { Node, visitTree } from "../parser";
-import { isRawMemoryType, RawMemoryType } from "../value";
+import { Raw } from "..";
 
 export interface Symbol {
   id: number;
   name: string;
+  scope: number;
 }
 
-export interface ScopedSymbol extends Symbol {
-  scopeId: number;
+export interface DefineSymbol extends Symbol {
+  type: "replace" | "memory" | "section" | "file" | "builtin";
+  content: string;
 }
 
-export interface SectionSymbol extends Symbol {
-  mainName: string;
-  subName: string;
-}
-
-export type CodeSymbol = ScopedSymbol;
-
-export interface DefineSymbol extends ScopedSymbol {
-  value: string;
-}
-
-export interface MemorySymbol extends ScopedSymbol {
-  type: RawMemoryType;
+export interface UseSymbol extends Symbol {
+  type: "replace" | "memory" | "section" | "builtin" | "file";
+  content: string;
 }
 
 export interface ScopeSymbol extends Symbol {
-  type: "mod" | "template" | "file" | "section" | "value";
+  type: "file" | "section" | "value";
+  content: SymbolTable;
 }
 
-export type UseType = 
-  | "define"
-  | "memory"
-
-export interface UseSymbol extends ScopedSymbol {
-  type: UseType;
-  useName: string;
-  useFrom: Node;
+export interface CodeScanner {
+  (input: [string, string], lastId: number, thisScope?: ScopeSymbol): [Partial<SymbolTable>, number];
 }
 
 export interface SymbolTable {
-  sections: SectionSymbol[];
-  codes: CodeSymbol[];
   defines: DefineSymbol[];
-  memories: MemorySymbol[];
-  scopes: ScopeSymbol[];
   uses: UseSymbol[];
+  scopes: ScopeSymbol[];
 }
 
-export const scanNode = (node: Node) => {
-  const table: SymbolTable = {
-    sections: [],
-    codes: [],
-    defines: [],
-    memories: [],
-    scopes: [],
-    uses: [],
-  };
-  const states: {
-    id: number;
-    scopes: ScopeSymbol[];
-  } = {
-    id: 1,
-    scopes: [{
-      type: "file",
-      name: "",
-      id: 0,
-    }],
-  };
-  table.scopes.push(states.scopes[0]);
-  visitTree(node, (curr, chain) => {
-    if(chain.length <= 0) {
-      return;
+export const replaceScanner: CodeScanner = ([key, value], lastId, thisScope) => {
+  const table: Partial<SymbolTable> = {};
+  const define = key.match(/^((@define\s+(?<define>.+))|(@global\s+(?<global>.+)))$/)?.groups;
+  let id = lastId;
+  if(define) {
+    if(define.define) {
+      table.defines = [{
+        id: id++,
+        type: "replace",
+        content: value,
+        name: define.define,
+        scope: thisScope?.id || -1,
+      }];
+    } else if(define.global) {
+      table.defines = [{
+        id: id++,
+        type: "replace",
+        content: value,
+        name: define.global,
+        scope: 0,
+      }];
     }
-    switch(curr.type) {
-      case "section":
-        {
-          table.sections.push({
-            id: states.id++,
-            name: curr.value,
-            mainName: curr.value.split("_")[0],
-            subName: curr.value.split("_").slice(1).join(""),
-          });
-          const scope: ScopeSymbol = {
-            id: states.id++,
-            name: curr.value,
-            type: "section",
-          };
-          table.scopes.push(scope);
-          if(_.last(states.scopes)?.type == "section") {
-            states.scopes.pop();
-          }
-          states.scopes.push(scope);
-        }
-        break;
-      case "code":
-        {
-          const [key, value] = [curr.children.find(x => x.type == "key"), curr.children.find(x => x.type == "value")];
-          if(!key || !value) {
-            break;
-          }
-          const res = /^(@define\s+(?<define>[^\s]+))|(@global\s+(?<global>[^\s]+))|(@memory\s+(?<memory>[^\s]+))$/.exec(key.value);
-          if(res) {
-            if(res.groups?.define) {
-              table.defines.push({
-                scopeId: _.last(states.scopes)?.id || -1,
-                id: states.id++,
-                name: res.groups.define,
-                value: value.value,
-              });
-            } else if(res.groups?.global) {
-              table.defines.push({
-                scopeId: states.scopes[0].id,
-                id: states.id++,
-                name: res.groups.global,
-                value: value.value,
-              });
-            } else if(res.groups?.memory) {
-              if(!isRawMemoryType(value.value)) {
-                throw new ScanError("the memory type is not valid", curr);
-              }
-              table.memories.push({
-                scopeId: states.scopes[0].id,
-                id: states.id++,
-                name: res.groups.memory,
-                type: value.value,
-              });
-            }
-          } else if(key.value == "defineUnitMemory") {
-            const memories = value.value
-              .replace(/(""")|(''')|(\n)/g, "")
-              .split(",")
-              .filter(x => x && x != ",");
-            for(const memory of memories) {
-              const res = /^\s*(?<type>[^\s]+)\s+(?<name>[^\s]+)\s*$/.exec(memory);
-              if(res && res.groups && res.groups.type && isRawMemoryType(res.groups.type) && res.groups.name) {
-                table.memories.push({
-                  scopeId: states.scopes[0].id,
-                  id: states.id++,
-                  name: res.groups.name,
-                  type: res.groups.type,
-                });
-              } else {
-                throw new ScanError("the memory define is not correct", curr);
-              }
-            }
-          }
-        }
-        break;
-    }
-  });
-  return table;
+  }
+  return [table, id];
 };
 
-export class ScanError extends Error {
-  node: Node;
-  constructor(msg: string, node: Node) {
-    super(msg);
-    this.node = node;
+export const memoryScanner: CodeScanner = ([key, value], lastId, thisScope) => {
+  const table: Partial<SymbolTable> = {};
+  const define = key.match(/^@memory\s+(.+)$/)?.[1];
+  let id = lastId;
+  if(define) {
+    table.defines = [{
+      id: id++,
+      type: "memory",
+      content: value,
+      name: define,
+      scope: thisScope?.id || -1,
+    }];
   }
-}
+  return [table, id];
+};
+
+export const copyFromSectionScanner: CodeScanner = ([key, value], lastId, thisScope) => {
+  const table: {uses: UseSymbol[]} = {
+    uses: [],
+  };
+  let id = lastId;
+  if(key == "@copyFromSection") {
+    value.split(",").forEach(sec => {
+      table.uses.push({
+        id: id++,
+        type: "section",
+        content: "",
+        name: sec,
+        scope: thisScope?.id || -1,
+      });
+    });
+  }
+  return [table, id];
+};
+
+export const copyFromScanner: CodeScanner = ([key, value], lastId, thisScope) => {
+  const table: {uses: UseSymbol[]} = {
+    uses: [],
+  };
+  let id = lastId;
+  if(key == "copyFrom") {
+    value.split(",").forEach(file => {
+      table.uses.push({
+        id: id++,
+        type: "file",
+        content: "",
+        name: file,
+        scope: thisScope?.id || -1,
+      });
+    });
+  }
+  return [table, id];
+};
+
+export const unitMemoriesScanner: CodeScanner = ([key, value], lastId, thisScope) => {
+  const table: { defines: DefineSymbol[] } = {
+    defines: [],
+  };
+  let id = lastId;
+  if(key == "defineUnitMemory") {
+    value.split(",").forEach(memory => {
+      const [type, name] = memory.trim().split(/\s+/);
+      table.defines.push({
+        id: id++,
+        type: "memory",
+        name: name,
+        content: type,
+        scope: thisScope?.id || -1
+      });
+    });
+  }
+  return [table, id];
+};
+
+export const presetScanners: CodeScanner[] = [
+  replaceScanner,
+  memoryScanner,
+  unitMemoriesScanner,
+  copyFromSectionScanner,
+  copyFromScanner,
+];
+
+export const scan = (raw: Raw, scanners = presetScanners, filename = "unnamed.ini") => {
+  const table: SymbolTable = {
+    defines: [],
+    uses: [],
+    scopes: [],
+  };
+  const scopeStack: ScopeSymbol[] = [{
+    id: 0,
+    type: "file",
+    name: filename,
+    scope: -1,
+    content: {
+      defines: [],
+      uses: [],
+      scopes: [],
+    },
+  }];
+  let id = 1;
+  for(const [name, section] of raw) {
+    table.defines.push({
+      id: id++,
+      type: "section",
+      name: name,
+      scope: 0,
+      content: "",
+    });
+    const secScope: ScopeSymbol = {
+      id: id++,
+      type: "section",
+      name: name,
+      scope: 0,
+      content:{
+        defines: [],
+        uses: [],
+        scopes: [],
+      },
+    };
+    table.scopes.push(secScope);
+    scopeStack.push(secScope);
+    for(const [key, value] of section) {
+      for(const scanner of scanners) {
+        const tab = scanner([key, value], id, table.scopes.at(-1));
+        tab[0].defines && (() => {
+          tab[0].defines.forEach(define => {
+            table.defines.push(define);
+            table.scopes.find(scope => scope.id == define.scope)?.content.defines.push(define);
+          });
+        })();
+        tab[0].scopes && (() => {
+          tab[0].scopes.forEach(scope => {
+            table.scopes.push(scope);
+            table.scopes.find(scope => scope.id == scope.scope)?.content.scopes.push(scope);
+          });
+        })();
+        tab[0].uses && (() => {
+          tab[0].uses.forEach(use => {
+            table.uses.push(use);
+            table.scopes.find(scope => scope.id == use.scope)?.content.uses.push(use);
+          });
+        })();
+        id = tab[1];
+      }
+    }
+    scopeStack.pop();
+  }
+  return table;
+};

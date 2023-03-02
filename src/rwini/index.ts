@@ -1,8 +1,24 @@
 import { Node } from "./parser";
-import { Value, ValueType } from "./value";
+import { Value } from "./value";
 
 export type Raw = Map<string, Map<string, string>>;
-export type Rwini<Type extends ValueType> = Map<string, Map<string, Value<Type>>>;
+export type Rwini = Map<string, Map<string, Value>>;
+
+export const combineRaw = (...raws: Raw[]): Raw => {
+  if(raws.length == 0) {
+    return new Map();
+  } else if(raws.length == 1) {
+    return raws[0];
+  } else {
+    const nRaw: Raw = new Map();
+    for(const raw of raws) {
+      for(const [name, sec] of raw) {
+        nRaw.set(name, new Map(sec.entries()));
+      }
+    }
+    return nRaw;
+  }
+};
 
 export const parseTreetoRaw = (node: Node) => {
   const ini: Raw = new Map();

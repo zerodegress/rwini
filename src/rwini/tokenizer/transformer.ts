@@ -1,6 +1,5 @@
 import { Token, TokenizeError, TokensTransformer } from ".";
-import * as _ from "lodash";
-import { Position, Range } from "../../util";
+import { Position } from "../../util";
 
 export const splitTripleQuotes:TokensTransformer = (tokens) => {
   const nTokens: Token[] = [];
@@ -70,7 +69,7 @@ export const concatMultilineValue: TokensTransformer = (tokens) => {
               value: states.tokensCache.map(x => x.value).join(""),
               range: {
                 start: states.tokensCache[0].range.start,
-                end: (_.last(states.tokensCache) as Token).range.end,
+                end: (states.tokensCache.at(-1) as Token).range.end,
               }
             });
             nTokens.push(token);
@@ -95,7 +94,7 @@ export const concatMultilineValue: TokensTransformer = (tokens) => {
     }
   }
   if(states.tokensCache.length > 0) {
-    throw new TokenizeError("triple quotes should ends here", _.last(states.tokensCache) as Token);
+    throw new TokenizeError("triple quotes should ends here", states.tokensCache.at(-1) as Token);
   }
   return nTokens;
 };
@@ -115,7 +114,7 @@ export const concatSectionComment: TokensTransformer = (tokens) => {
           value: states.tokensCache.map(x => x.value).join(""),
           range: {
             start: states.tokensCache[0].range.start,
-            end: (_.last(states.tokensCache) as Token).range.end,
+            end: (states.tokensCache.at(-1) as Token).range.end,
           },
         });
         states.tokensCache = [];
