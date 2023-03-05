@@ -1,43 +1,34 @@
-import { Node } from "../parser";
-import { RawMemoryType } from "../value";
+import { Raw } from "..";
 export interface Symbol {
     id: number;
     name: string;
+    scope: number;
 }
-export interface ScopedSymbol extends Symbol {
-    scopeId: number;
+export interface DefineSymbol extends Symbol {
+    type: "replace" | "memory" | "section" | "file" | "builtin";
+    content: string;
 }
-export interface SectionSymbol extends Symbol {
-    mainName: string;
-    subName: string;
-}
-export type CodeSymbol = ScopedSymbol;
-export interface DefineSymbol extends ScopedSymbol {
-    value: string;
-}
-export interface MemorySymbol extends ScopedSymbol {
-    type: RawMemoryType;
+export interface UseSymbol extends Symbol {
+    type: "replace" | "memory" | "section" | "builtin" | "file";
+    content: string;
 }
 export interface ScopeSymbol extends Symbol {
-    type: "mod" | "template" | "file" | "section" | "value";
+    type: "file" | "section" | "value";
+    content: SymbolTable;
 }
-export type UseType = "define" | "memory";
-export interface UseSymbol extends ScopedSymbol {
-    type: UseType;
-    useName: string;
-    useFrom: Node;
+export interface CodeScanner {
+    (input: [string, string], lastId: number, thisScope?: ScopeSymbol): [Partial<SymbolTable>, number];
 }
 export interface SymbolTable {
-    sections: SectionSymbol[];
-    codes: CodeSymbol[];
     defines: DefineSymbol[];
-    memories: MemorySymbol[];
-    scopes: ScopeSymbol[];
     uses: UseSymbol[];
+    scopes: ScopeSymbol[];
 }
-export declare const scanNode: (node: Node) => SymbolTable;
-export declare class ScanError extends Error {
-    node: Node;
-    constructor(msg: string, node: Node);
-}
+export declare const replaceScanner: CodeScanner;
+export declare const memoryScanner: CodeScanner;
+export declare const copyFromSectionScanner: CodeScanner;
+export declare const copyFromScanner: CodeScanner;
+export declare const unitMemoriesScanner: CodeScanner;
+export declare const presetScanners: CodeScanner[];
+export declare const scan: (raw: Raw, scanners?: CodeScanner[], filename?: string) => SymbolTable;
 //# sourceMappingURL=index.d.ts.map

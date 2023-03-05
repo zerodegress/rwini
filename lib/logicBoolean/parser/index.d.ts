@@ -15,14 +15,15 @@ export declare class Parser {
     ptr: number;
     tree: Node;
     stack: [OpType, Node][];
+    pairing: Node[];
     input: Token[];
     nowNode: Node;
     recall: boolean;
-    isCall: boolean;
     constructor(input: Token[], ptr?: number, recall?: boolean);
     getCurrent(): Token;
     ahead(): void;
     op(): void;
+    notop(): void;
     match(type: TokenType, toType: NodeType, opType?: OpType): void;
     number(): void;
     bool(): void;

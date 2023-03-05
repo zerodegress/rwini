@@ -1,5 +1,5 @@
-import { Value, ValueType } from ".";
+import { Value } from ".";
 
-export interface Deserializer<Type extends ValueType> {
-  (input: string): Value<Type>;
+export interface Deserializer {
+  (input: string): Value;
 }

@@ -3,7 +3,7 @@ import { parseTreetoRaw, Raw } from "./rwini";
 import { presetTokenizer } from "./rwini/tokenizer";
 import { presetTransformers } from "./rwini/tokenizer/transformer";
 import { pipe } from "./util";
-export const parseIni = <T extends string>(ini: T): Raw => {
+export const parseIniToRaw = <T extends string>(ini: T): Raw => {
   const tokens = pipe(
     presetTokenizer(ini), 
     ...presetTransformers
