@@ -1,8 +1,8 @@
 {
   "name": "rwini",
-  "version": "0.0.0",
+  "version": "1.0.0",
   "description": "a Rusted Warfare Mod ini parser",
-  "main": "index.js",
+  "main": "lib/index.js",
   "scripts": {
     "build": "tsc --build",
     "clean": "tsc --build --clean",
