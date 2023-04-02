@@ -43,7 +43,7 @@ export const parseTreetoRaw = (node: Node) => {
 export const serializeRawToString = (raw: Raw) => {
   let text = "";
   for(const [secname, sec] of raw) {
-    text += `[${secname}]`;
+    text += `[${secname}]\n`;
     for(const [key, value] of sec) {
       text += `${key}:${value}\n`;
     }

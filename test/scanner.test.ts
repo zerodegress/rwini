@@ -20,7 +20,6 @@ describe("parseTree()", () => {
     const rIni = filterEmpty(flattenNode("codeList", flattenNode("rwini", [ini[0]])));
     expect(rIni.length > 0).toBe(true);
     const scanResult = scan(parseTreetoRaw(rIni[0]));
-    console.log(scanResult);
     expect(scanResult).not.toBe(undefined);
   });
 });

@@ -35,7 +35,6 @@ describe("presetTransformers", () => {
     );
     expect(tokens.find(x => x.value.startsWith("\"\"\""))?.range.start.line).toBe(2);
     expect(tokens.find(x => x.value.startsWith("\"\"\""))?.range.end.line).toBe(4);
-    console.log(tokens);
   });
   it("targets correctly", () => {
     const ini = fs.readFileSync(path.join(__dirname, "./samples/test1.ini")).toString();
@@ -49,6 +48,5 @@ describe("presetTransformers", () => {
         continue;
       }
     }
-    console.log(tokens);
   });
 });

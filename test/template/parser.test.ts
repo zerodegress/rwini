@@ -6,6 +6,5 @@ describe("parse()", () => {
   it("works", () => {
     const test = tokenize("abc%{abc + abc}abc");
     const seqs = parse(test);
-    console.log(seqs);
   });
 });
